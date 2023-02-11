@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paint</title>
+    <style>
+        body {
+            font-family: monospace;
+        }
+
+        canvas {
+            border: 1px solid black;
+            width: 560px;
+            height: 360px;
+        }
+
+        button {
+            height: 30px;
+            width: 50px;
+            background: orange;
+            color: white;
+            border: none;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #ffc200;
+            transition: all .3s ease-in-out;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Drawing</h1>
+    <canvas id="canvas" width="560" height="360"></canvas>
+    <button id="clear">Clear</button>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <script>
+
+        var socket = io();
+        $.getJSON('https://ipapi.co/json/', function (data) {
+            let ip = data["ip"];
+            socket.emit('user-connect', ip);
+        });
+
+        let paintDetails;
+        let isDrawing = false;
+        let x = 0;
+        let y = 0;
+
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+
+        canvas.addEventListener('mousedown', e => {
+            x = e.offsetX;
+            y = e.offsetY;
+            isDrawing = true;
+        });
+
+        canvas.addEventListener('mousemove', e => {
+            if (isDrawing === true) {
+                drawLine(context, x, y, e.offsetX, e.offsetY);
+
+                paintDetails = {
+                    x1: x,
+                    y1: y,
+                    x2: e.offsetX,
+                    y2: e.offsetY,
+                }
+                socket.emit('paint', paintDetails);
+
+                x = e.offsetX;
+                y = e.offsetY;
+            }
+        });
+
+        window.addEventListener('mouseup', e => {
+            if (isDrawing === true) {
+                drawLine(context, x, y, e.offsetX, e.offsetY);
+                
+                paintDetails = {
+                    x1: x,
+                    y1: y,
+                    x2: e.offsetX,
+                    y2: e.offsetY,
+                }
+                socket.emit('paint', paintDetails);
+
+                x = 0;
+                y = 0;
+                isDrawing = false;
+            }
+        });
+
+        function drawLine(context, x1, y1, x2, y2) {
+            context.beginPath();
+            context.strokeStyle = 'black';
+            context.lineWidth = 1;
+            context.moveTo(x1, y1);
+            context.lineTo(x2, y2);
+            context.stroke();
+            context.closePath();
+        }
+
+        socket.on('paint', function (paintDetails) {
+            console.log(paintDetails)
+            drawLine(context, paintDetails["x1"], paintDetails["y1"], paintDetails["x2"], paintDetails["y2"])
+        })
+
+        document.getElementById('clear').addEventListener('click',
+            function () {
+                context.clearRect(0, 0, canvas.width, canvas.height);
+            }, false);
+    </script>
+</body>
+
+</html>
