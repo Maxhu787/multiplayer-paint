@@ -5,21 +5,24 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Paint</title>
+    <title>Drawing</title>
     <style>
         body {
             font-family: monospace;
+            background-color: rgba(41, 41, 41);
+            color: #fff;
+            user-select: none;
         }
 
         canvas {
             border: 1px solid black;
-            width: 560px;
-            height: 360px;
+            width: 600px;
+            height: 400px;
         }
 
         button {
-            height: 30px;
-            width: 50px;
+            height: 40px;
+            width: 600px;
             background: orange;
             color: white;
             border: none;
@@ -36,8 +39,11 @@
 
 <body>
     <h1>Drawing</h1>
+    <p>canvas is cleared every time you refresh</p>
+    <p>clearing the canvas doesn't clear other's</p>
+    <p>socket.io multiplayer</p>
     <canvas id="canvas" width="560" height="360"></canvas>
-    <button id="clear">Clear</button>
+    <br /><button id="clear">Clear</button>
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
     <script>
@@ -99,7 +105,7 @@
 
         function drawLine(context, x1, y1, x2, y2) {
             context.beginPath();
-            context.strokeStyle = 'black';
+            context.strokeStyle = 'white';
             context.lineWidth = 1;
             context.moveTo(x1, y1);
             context.lineTo(x2, y2);
