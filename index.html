@@ -221,12 +221,16 @@
 
         socket.on('paint', function (paintDetails) {
             drawLine(context, paintDetails["x1"], paintDetails["y1"], paintDetails["x2"], paintDetails["y2"], paintDetails["color"])
-            console.log(paintDetails)
+            // console.log(paintDetails)
+        })
+        socket.on('clear-req', function () {
+                context.clearRect(0, 0, canvas.width, canvas.height);  
         })
 
         document.getElementById('clear').addEventListener('click',
             function () {
                 context.clearRect(0, 0, canvas.width, canvas.height);
+                socket.emit('clear-req', 'user')
             }, false);
     </script>
 </body>

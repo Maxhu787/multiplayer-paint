@@ -22,6 +22,10 @@ io.on('connection', (socket) => {
     socket.on('paint', (paintDetails) => {
         io.emit('paint', paintDetails);
   });
+  socket.on('clear-req', (ip) => {
+    let text = 'user requested to clear canvas'
+    io.emit('clear-req', text);
+  })
 })
 
 server.listen(3000, () => {
