@@ -34,6 +34,48 @@
             background: #ffc200;
             transition: all .3s ease-in-out;
         }
+        #color-select {
+            padding: 10px;
+        }
+        .color-item {
+            margin-right: 10px;
+            height: 50px;
+            width: 50px;
+            display: inline-block;
+            border-radius: 10px;
+            transition: all .1s ease-in;
+            cursor: pointer;
+        }
+        #white {
+            background-color: #fff;
+        }
+        #black {
+            background-color: black;
+        }
+        #red {
+            background-color: red;
+        }
+        #orange {
+            background-color: orange;
+        }
+        #yellow {
+            background-color: yellow;
+        }
+        #green {
+            background-color: green;
+        }
+        #blue {
+            background-color: blue;
+        }
+        #darkblue {
+            background-color: darkblue;
+        }
+        #purple {
+            background-color: purple;
+        }
+        .color-item-focus {
+            box-shadow: 0px 0px 8px 2px white;
+        }
     </style>
 </head>
 
@@ -42,6 +84,17 @@
     <p>canvas is cleared every time you refresh</p>
     <p>clearing the canvas doesn't clear other's</p>
     <p>socket.io multiplayer</p>
+    <div id="color-select">
+        <div class="color-item color-item-focus" id="white" onclick="selectColor(this.id)"></div>
+        <div class="color-item" id="black" onclick="selectColor(this.id)"></div>
+        <div class="color-item" id="red" onclick="selectColor(this.id)"></div>
+        <div class="color-item" id="orange" onclick="selectColor(this.id)"></div>
+        <div class="color-item" id="yellow" onclick="selectColor(this.id)"></div>
+        <div class="color-item" id="green" onclick="selectColor(this.id)"></div>
+        <div class="color-item" id="blue" onclick="selectColor(this.id)"></div>
+        <div class="color-item" id="darkblue" onclick="selectColor(this.id)"></div>
+        <div class="color-item" id="purple" onclick="selectColor(this.id)"></div>
+    </div>
     <canvas id="canvas" width="560" height="360"></canvas>
     <br /><button id="clear">Clear</button>
     <script src="/socket.io/socket.io.js"></script>
@@ -58,42 +111,95 @@
         let isDrawing = false;
         let x = 0;
         let y = 0;
+        let color = 'white';
 
         const canvas = document.getElementById('canvas');
         const context = canvas.getContext('2d');
+
+        function selectColor(id) {
+            color = id;
+            document.getElementsByClassName("color-item-focus")[0].classList.remove("color-item-focus");
+            document.getElementById(id).classList.add("color-item-focus");
+        }
 
         canvas.addEventListener('mousedown', e => {
             x = e.offsetX;
             y = e.offsetY;
             isDrawing = true;
-        });
-
+        })
+        
+        
         canvas.addEventListener('mousemove', e => {
             if (isDrawing === true) {
-                drawLine(context, x, y, e.offsetX, e.offsetY);
+                drawLine(context, x, y, e.offsetX, e.offsetY, color);
 
                 paintDetails = {
                     x1: x,
                     y1: y,
                     x2: e.offsetX,
                     y2: e.offsetY,
+                    color: color,
                 }
                 socket.emit('paint', paintDetails);
 
                 x = e.offsetX;
                 y = e.offsetY;
             }
-        });
-
+        })
+        
         window.addEventListener('mouseup', e => {
             if (isDrawing === true) {
-                drawLine(context, x, y, e.offsetX, e.offsetY);
+                drawLine(context, x, y, e.offsetX, e.offsetY, color);
                 
                 paintDetails = {
                     x1: x,
                     y1: y,
                     x2: e.offsetX,
                     y2: e.offsetY,
+                    color: color,
+                }
+                socket.emit('paint', paintDetails);
+                
+                x = 0;
+                y = 0;
+                isDrawing = false;
+            }
+        })
+
+        canvas.addEventListener('touchstart', e => {
+            x =  e.touches[0].clientX;
+            y =  e.touches[0].clientY;
+            isDrawing = true;
+        })
+
+        canvas.addEventListener('touchmove', e => {
+            if (isDrawing === true) {
+                drawLine(context, x, y, e.touches[0].clientX, e.touches[0].clientY, color);
+
+                paintDetails = {
+                    x1: x,
+                    y1: y,
+                    x2: e.touches[0].clientX,
+                    y2: e.touches[0].clientY,
+                    color: color,
+                }
+                socket.emit('paint', paintDetails);
+
+                x = e.touches[0].clientX;
+                y = e.touches[0].clientY;
+            }
+        })
+        
+        window.addEventListener('touchend', e => {
+            if (isDrawing === true) {
+                drawLine(context, x, y, e.touches[0].clientX, e.touches[0].clientY, color);
+                
+                paintDetails = {
+                    x1: x,
+                    y1: y,
+                    x2: e.touches[0].clientX,
+                    y2: e.touches[0].clientY,
+                    color: color,
                 }
                 socket.emit('paint', paintDetails);
 
@@ -101,11 +207,11 @@
                 y = 0;
                 isDrawing = false;
             }
-        });
+        })
 
-        function drawLine(context, x1, y1, x2, y2) {
+        function drawLine(context, x1, y1, x2, y2, color) {
             context.beginPath();
-            context.strokeStyle = 'white';
+            context.strokeStyle = color;
             context.lineWidth = 1;
             context.moveTo(x1, y1);
             context.lineTo(x2, y2);
@@ -114,8 +220,8 @@
         }
 
         socket.on('paint', function (paintDetails) {
+            drawLine(context, paintDetails["x1"], paintDetails["y1"], paintDetails["x2"], paintDetails["y2"], paintDetails["color"])
             console.log(paintDetails)
-            drawLine(context, paintDetails["x1"], paintDetails["y1"], paintDetails["x2"], paintDetails["y2"])
         })
 
         document.getElementById('clear').addEventListener('click',
